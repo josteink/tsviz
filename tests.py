@@ -9,21 +9,21 @@ class Tests(unittest.TestCase):
 
         self.assertNotEqual(None, m)
         [filename] = m.groups()
-        self.assertEqual("File", filename)
+        self.assertEqual("./File", filename)
 
         decl = "import { class, class 2 } from \"./File\""
         m = tsviz.module_import_declaration.match(decl)
 
         self.assertNotEqual(None, m)
         [filename] = m.groups()
-        self.assertEqual("File", filename)
+        self.assertEqual("./File", filename)
 
         decl = "import * as boo from \"./File\""
         m = tsviz.module_import_declaration.match(decl)
 
         self.assertNotEqual(None, m)
         [filename] = m.groups()
-        self.assertEqual("File", filename)
+        self.assertEqual("./File", filename)
 
     def test_module_id(self):
         module = tsviz.Module("SuperOffice.Test.Name.ts")
@@ -33,8 +33,8 @@ class Tests(unittest.TestCase):
         self.assertEqual("SubDir_SuperOffice_Test_Name", module.get_friendly_id())
 
     def test_graphviz_output(self):
-        proj1 = tsviz.Module("Project.SO.Main", "psomain.csproj", "123-234")
-        proj2 = tsviz.Module("Project.SO.Installer", "psoinstaller.vcxproj", "234-345")
+        proj1 = tsviz.Module("Module.SO.Main.ts")
+        proj2 = tsviz.Module("Module.SO.Installer.ts")
 
         proj1.add_dependency(proj2.id);
 
@@ -45,47 +45,47 @@ class Tests(unittest.TestCase):
         self.assertEqual(True, "Module_SO_Installer" in txt)
 
         # has proper labels
-        self.assertEqual(True, "label=\"Project.SO.Main\"" in txt)
+        self.assertEqual(True, "label=\"Module.SO.Main.ts\"" in txt)
 
     def test_eliminate_dependencies(self):
-        a = tsviz.Module("A", "A.csproj", "A")
-        b = tsviz.Module("B", "B.csproj", "B")
-        c = tsviz.Module("C", "C.csproj", "C")
-        d = tsviz.Module("D", "D.csproj", "D")
+        a = tsviz.Module("A.ts")
+        b = tsviz.Module("B.ts")
+        c = tsviz.Module("C.ts")
+        d = tsviz.Module("D.ts")
 
-        a.dependant_projects = [b, c, d]
-        b.dependant_projects = [c, d]
-        c.dependant_projects = [d]
+        a.dependant_modules = [b, c, d]
+        b.dependant_modules = [c, d]
+        c.dependant_modules = [d]
 
         a.remove_transitive_dependencies()
         b.remove_transitive_dependencies()
         c.remove_transitive_dependencies()
 
-        self.assertEqual([b], a.dependant_projects)
-        self.assertEqual([c], b.dependant_projects)
-        self.assertEqual([d], c.dependant_projects)
+        self.assertEqual([b], a.dependant_modules)
+        self.assertEqual([c], b.dependant_modules)
+        self.assertEqual([d], c.dependant_modules)
 
     def test_dependency_chains(self):
-        a = tsviz.Module("A", "A.csproj", "A")
-        b = tsviz.Module("B", "B.csproj", "B")
-        c = tsviz.Module("C", "C.csproj", "C")
-        d = tsviz.Module("D", "D.csproj", "D")
+        a = tsviz.Module("A.ts")
+        b = tsviz.Module("B.ts")
+        c = tsviz.Module("C.ts")
+        d = tsviz.Module("D.ts")
 
-        a.dependant_projects = [b]
-        b.dependant_projects = [c]
-        c.dependant_projects = [d]
+        a.dependant_modules = [b]
+        b.dependant_modules = [c]
+        c.dependant_modules = [d]
 
         all_deps = a.get_nested_dependencies()
         self.assertEqual([b, c, d], all_deps)
 
     def test_module_highlighting(self):
-        a = tsviz.Module("A", "A.csproj", "A")
-        b1 = tsviz.Module("B1", "B1.csproj", "B1")
-        b2 = tsviz.Module("B2", "B2.csproj", "B2")
-        c = tsviz.Module("C", "C.csproj", "C")
+        a = tsviz.Module("A.ts")
+        b1 = tsviz.Module("B1.ts")
+        b2 = tsviz.Module("B2.ts")
+        c = tsviz.Module("C.ts")
 
-        a.dependant_projects = [b1, b2]
-        b1.dependant_projects = [c]
+        a.dependant_modules = [b1, b2]
+        b1.dependant_modules = [c]
 
         c.highlight = True
 
@@ -95,16 +95,16 @@ class Tests(unittest.TestCase):
         self.assertEqual(False, c.has_highlighted_dependencies())
 
     def test_declared_dependencies_generates_highlight_even_though_dependency_is_eliminated_as_transitive(self):
-        a = tsviz.Module("A", "A.csproj", "A")
-        b = tsviz.Module("B", "B.csproj", "B")
-        c = tsviz.Module("C", "C.csproj", "C")
+        a = tsviz.Module("A.ts")
+        b = tsviz.Module("B.ts")
+        c = tsviz.Module("C.ts")
 
-        a.dependant_projects = [b]
-        b.dependant_projects = [c]
+        a.dependant_modules = [b]
+        b.dependant_modules = [c]
         # for a, c is a declared, transitive dependency which will normally be eliminated
         # in visualization.
-        a.declared_dependant_projects = [b,c]
-        b.declared_dependant_projects = [c]
+        a.declared_dependant_modules = [b,c]
+        b.declared_dependant_modules = [c]
 
         c.highlight = True
 
@@ -112,8 +112,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(True, hasDep)
 
     def test_missing_shared_transitive_dependencies(self):
-        a = tsviz.Module("A", "A.csproj", "A")
-        b = tsviz.Module("B", "B.csproj", "B")
+        a = tsviz.Module("A.ts")
+        b = tsviz.Module("B.ts")
 
         a.add_dependency("B")
         a.add_dependency("C")
