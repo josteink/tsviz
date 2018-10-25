@@ -4,21 +4,21 @@ import tsviz
 
 class Tests(unittest.TestCase):
     def test_parse_module_import_regexp(self):
-        decl = "import { class } from \"./File\""
+        decl = "import { class } from \"./File\";"
         m = tsviz.module_import_declaration.match(decl)
 
         self.assertNotEqual(None, m)
         [filename] = m.groups()
         self.assertEqual("./File", filename)
 
-        decl = "import { class, class 2 } from \"./File\""
+        decl = "import { class, class 2 } from \"./File\";"
         m = tsviz.module_import_declaration.match(decl)
 
         self.assertNotEqual(None, m)
         [filename] = m.groups()
         self.assertEqual("./File", filename)
 
-        decl = "import * as boo from \"./File\""
+        decl = "import * as boo from \"./File\";"
         m = tsviz.module_import_declaration.match(decl)
 
         self.assertNotEqual(None, m)
