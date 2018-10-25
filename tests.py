@@ -119,12 +119,12 @@ class Tests(unittest.TestCase):
         a.add_dependency("C")
         b.add_dependency("C")
 
-        projects = [a, b]
-        a.resolve_projects_from_ids(projects)
-        b.resolve_projects_from_ids(projects)
+        modules = [a, b]
+        a.resolve_modules_from_ids(modules)
+        b.resolve_modules_from_ids(modules)
 
-        self.assertEqual(True, a.has_missing_projects)
-        self.assertEqual(True, b.has_missing_projects)
+        self.assertEqual(True, a.has_missing_modules)
+        self.assertEqual(True, b.has_missing_modules)
 
         self.assertEqual(["C"], a.missing_module_ids)
         self.assertEqual(["C"], b.missing_module_ids)

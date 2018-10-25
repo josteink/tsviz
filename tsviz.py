@@ -42,10 +42,11 @@ class Module(object):
     def __init__(self, filename):
         self.name = self.get_name_from_filename(filename)
         self.filename = filename
-        self.id = self.get_full_module_path()
+        self.id = self.get_full_module_path().upper()
         self.dependant_ids = []
         self.dependant_modules = []
         self.declared_dependant_modules = []
+        self.missing_module_ids = []
         self.has_missing_modules = False
         self.is_missing_module = False
         self.highlight = False
@@ -70,7 +71,7 @@ class Module(object):
             self.dependant_ids.append(id)
 
     def get_full_module_path(self):
-        return self.filename
+        return os.path.abspath(self.filename)
 
     def get_module_references(self, lines):
         imports = []
@@ -84,7 +85,9 @@ class Module(object):
         for item in imports:
             match = module_import_declaration.match(item)
             if match:
-                result.append(match.groups()[0].upper())
+                module = match.groups()[0].upper()
+                full_module_path = os.path.abspath(os.path.join(os.path.dirname(self.filename), module))
+                result.append(full_module_path)
         return result
 
     def get_declared_module_dependency_ids(self):
@@ -103,21 +106,21 @@ class Module(object):
         for id in ids:
             self.add_dependency(id)
 
-    def resolve_modules_from_ids(self, projects):
+    def resolve_modules_from_ids(self, modules):
         for id in self.dependant_ids:
-            project = get_module_by_id(id, projects)
-            if project is None:
+            module = get_module_by_id(id, modules)
+            if module is None:
                 # track missing deps consistently
                 missing_module_id = "Missing_" + id.replace("-", "")
-                project = Module(missing_module_id, missing_module_id, id)
-                project.is_missing_module = True
-                projects.append(project)
+                module = Module(missing_module_id)
+                module.is_missing_module = True
+                modules.append(module)
 
-            if project.is_missing_module:
+            if module.is_missing_module:
                 self.has_missing_modules = True
                 self.missing_module_ids.append(id)
 
-            self.dependant_modules.append(project)
+            self.dependant_modules.append(module)
 
         self.declared_dependant_modules = self.dependant_modules
 
