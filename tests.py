@@ -26,9 +26,11 @@ class Tests(unittest.TestCase):
         self.assertEqual("File", filename)
 
     def test_module_id(self):
-        proj = tsviz.Module("SuperOffice.Test.Name", "stn.csproj", "123-234-345")
+        module = tsviz.Module("SuperOffice.Test.Name.ts")
+        self.assertEqual("SuperOffice_Test_Name", module.get_friendly_id())
 
-        self.assertEqual("SuperOffice_Test_Name", proj.get_friendly_id())
+        module = tsviz.Module("SubDir/SuperOffice.Test.Name.ts")
+        self.assertEqual("SubDir_SuperOffice_Test_Name", module.get_friendly_id())
 
     def test_graphviz_output(self):
         proj1 = tsviz.Module("Project.SO.Main", "psomain.csproj", "123-234")
@@ -108,7 +110,7 @@ class Tests(unittest.TestCase):
 
         hasDep = a.has_declared_highlighted_dependencies()
         self.assertEqual(True, hasDep)
-        
+
     def test_missing_shared_transitive_dependencies(self):
         a = tsviz.Module("A", "A.csproj", "A")
         b = tsviz.Module("B", "B.csproj", "B")

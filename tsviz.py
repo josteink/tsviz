@@ -40,7 +40,7 @@ def set_working_basedir(root_dir):
 
 class Module(object):
     def __init__(self, filename):
-        self.name = filename[len(solution_path)::]
+        self.name = self.get_name_from_filename(filename)
         self.filename = filename
         self.id = self.get_full_module_path()
         self.dependant_ids = []
@@ -50,11 +50,19 @@ class Module(object):
         self.is_missing_module = False
         self.highlight = False
 
+    def get_name_from_filename(self, filename):
+        if len(solution_path) == 0:
+            return filename
+        elif solution_path == ".":
+            return filename
+        else:
+            return filename[len(solution_path)::]
+
     def filter_id(self, id):
         return id.replace("-", "")
 
     def get_friendly_id(self):
-        return self.name.replace(".", "_").replace("-", "_")
+        return self.name.replace(".ts", "").replace(".", "_").replace("-", "_").replace("/", "_")
 
     def add_dependency(self, id):
         id = str.upper(id)
@@ -168,7 +176,7 @@ class Module(object):
             if dep.highlight:
                 return True
         return False
-        
+
 
 
 def get_module_by_id(id, projects):
@@ -191,7 +199,7 @@ def sort_modules(modules):
 
 def get_tsfiles_in_dir(root_dir):
     from fnmatch import fnmatch
-    
+
     results = []
 
     for path, subdirs, files in os.walk(root_dir):
@@ -199,7 +207,7 @@ def get_tsfiles_in_dir(root_dir):
             if fnmatch(name, "*.ts"):
                 results.append(os.path.join(path, name))
     return results
-    
+
 def analyze_modules(tsfiles):
 
     modules = []
