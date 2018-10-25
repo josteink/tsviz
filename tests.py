@@ -25,37 +25,6 @@ class Tests(unittest.TestCase):
         [filename] = m.groups()
         self.assertEqual("File", filename)
 
-    def test_parse_module_dependency_regexp(self):
-        decl = "		{62AB4DC9-9913-4686-9F66-4BD3F4C7B119} = {62AB4DC9-9913-4686-9F66-4BD3F4C7B119}"
-
-        m = tsviz.module_dependency_declaration.match(decl)
-
-        self.assertNotEqual(None, m)
-        [id1, id2] = m.groups()
-        self.assertEqual(id1, id2)
-        self.assertEqual("62AB4DC9-9913-4686-9F66-4BD3F4C7B119", id1)
-
-    def test_parse_solution_contents(self):
-        decl = """
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DCF", "DCF", "{E6CAB0B1-AB81-40E4-9F7B-E777B2A706DE}"
-EndProject
-        Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MakeDistribution", "Clients\CS\MakeDistribution\MakeDistribution.vcxproj", "{2E668CA6-63BC-4F85-8D9D-5287D80C7D6B}"
-        ProjectSection(ProjectDependencies) = postProject
-    {5A1B76E3-A314-4956-A50F-45475A5F330A} = {5A1B76E3-A314-4956-A50F-45475A5F330A}
-        EndProjectSection
-                Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Admin", "Clients\CS\www\admin\Admin.vcxproj", "{5A1B76E3-A314-4956-A50F-45475A5F330A}"
-        EndProject"""
-
-        lines = decl.split("\n")
-        projs = tsviz.analyze_modules_in_solution(lines)
-
-        self.assertEqual(2, len(projs))
-
-        self.assertEqual("Admin", projs[0].name)
-        self.assertEqual(0, len(projs[0].dependant_ids))
-        self.assertEqual("MakeDistribution", projs[1].name)
-        self.assertEqual(1, len(projs[1].dependant_ids))
-
     def test_module_id(self):
         proj = tsviz.Module("SuperOffice.Test.Name", "stn.csproj", "123-234-345")
 
