@@ -154,7 +154,6 @@ class Tests(unittest.TestCase):
         self.assertEqual([c], b.circular_dependencies)
         self.assertEqual([b], c.circular_dependencies)
 
-    def test_deep_circular_dependencies_are_flagged(self):
 
 if __name__ == "__main__":
     unittest.main()
