@@ -14,7 +14,7 @@ import os
 debug_output = False
 solution_path = "."
 
-module_import_declaration = re.compile("import .* from \"(.*)\";")
+module_import_declaration = re.compile("import .* from \"(.*)\";.*")
 
 
 def debug(txt):
