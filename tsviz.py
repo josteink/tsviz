@@ -56,6 +56,8 @@ class Module(object):
         self.has_missing_modules = False
         self.is_missing_module = False
         self.highlight = False
+        self.has_circular_dependencies = False
+        self.circular_dependencies = []
 
     def get_name_from_filename(self, filename):
         if len(solution_path) == 0:
@@ -179,6 +181,12 @@ class Module(object):
                 return True
         return False
 
+    def detect_circular_dependencies(self):
+        for dep in self.declared_dependant_modules:
+            for subdep in dep.declared_dependant_modules:
+                if subdep == self:
+                    self.has_circular_dependencies = True
+                    self.circular_dependencies.append(dep)
 
 
 def get_module_by_name(name, modules):
@@ -214,26 +222,37 @@ def get_tsfiles_in_dir(root_dir):
                 results.append(os.path.join(path, name))
     return results
 
+
 def analyze_modules(tsfiles):
 
     modules = []
     for tsfile in tsfiles:
         modules.append(Module(tsfile))
 
-    # pull in dependencies declared in project-files
+    # pull in dependencies declared in TS-files.
+    # requires real files, so cannot be used in test!
     for module in modules:
         module.apply_declared_module_dependencies()
 
+    # common processing once modules are prepared
+    process_modules(modules)
+    return modules
+
+
+def process_modules(modules):
     # all projects & dependencies should now be known. lets analyze them
     for module in modules:
         module.resolve_modules_from_names(modules)
+
+    # once all modules have resolved their dependencies, we can try to
+    # detect ciruclar dependencies!
+    for module in modules:
+        module.detect_circular_dependencies()
 
     # format results in a alphabetical order
     sort_modules(modules)
     for module in modules:
         sort_modules(module.dependant_modules)
-
-    return modules
 
 
 def remove_transitive_dependencies(projects):

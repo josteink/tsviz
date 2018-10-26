@@ -131,6 +131,30 @@ class Tests(unittest.TestCase):
 
         # TODO: test with eliminated transisitive deps.
 
+    def test_circular_dependencies_are_flagged(self):
+        a = tsviz.Module("A.ts")
+        b = tsviz.Module("B.ts")
+        c = tsviz.Module("C.ts")
+        d = tsviz.Module("D.ts")
+
+        a.add_dependency(b.filename)
+        b.add_dependency(c.filename)
+        c.add_dependency(d.filename)
+        # so far so good... but then suddenly...
+        # circular dependency!
+        c.add_dependency(b.filename)
+
+        tsviz.process_modules([a, b, c, d])
+
+        self.assertEqual(False, a.has_circular_dependencies)
+        self.assertEqual(True, b.has_circular_dependencies)
+        self.assertEqual(True, c.has_circular_dependencies)
+        self.assertEqual(False, d.has_circular_dependencies)
+
+        self.assertEqual([c], b.circular_dependencies)
+        self.assertEqual([b], c.circular_dependencies)
+
+    def test_deep_circular_dependencies_are_flagged(self):
 
 if __name__ == "__main__":
     unittest.main()
