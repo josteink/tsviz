@@ -182,7 +182,8 @@ class Module(object):
         return False
 
     def detect_circular_dependencies(self):
-        for dep in self.declared_dependant_modules:
+        all_nested_deps = self.get_nested_dependencies()
+        for dep in all_nested_deps:
             for subdep in dep.declared_dependant_modules:
                 if subdep == self:
                     print("WARNING: Circular dependency detected! Module {0} and {1} depends on each other!".format(self.name, dep.name))
