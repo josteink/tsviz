@@ -282,7 +282,7 @@ def filter_modules(rx, projects):
     result = []
 
     for project in projects:
-        if not rx.match(str.lower(project.name)):
+        if not rx.match(str.lower(project.filename)):
             result.append(project)
         else:
             debug("Info: Excluding project {0}.".format(project.name))
