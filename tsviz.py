@@ -13,6 +13,7 @@ import os
 
 debug_output = False
 solution_path = "."
+allow_loose_module_match = False
 
 module_import_declaration = re.compile("import .* from \"(.*)\";.*")
 
@@ -107,8 +108,13 @@ class Module(object):
             self.add_dependency(item)
 
     def resolve_modules_from_names(self, modules):
+        global allow_loose_module_match
         for name in self.dependant_module_names:
-            module = get_module_by_name(name, modules)
+            module = get_module_by_filename(name, modules)
+            if module is None and allow_loose_module_match:
+                module = get_module_by_loose_name(name, modules)
+
+                # check if we still haven't matched up!
             if module is None:
                 print("ERROR! Failed to resolve dependency {0} in module {1}!".format(name, self.name))
                 # track missing deps consistently
@@ -191,14 +197,18 @@ class Module(object):
                     self.circular_dependencies.append(dep)
 
 
-def get_module_by_name(name, modules):
+def get_module_by_filename(filename, modules):
     for module in modules:
-        if module.filename == name:
+        if module.filename == filename:
             return module
-    #print("ERROR lookup module {0}".format(name))
-    #print("List of all modules:")
-    #for item in modules:
-    #    print("- {0}".format(item.filename))
+    return None
+
+
+def get_module_by_loose_name(name, modules):
+    basename = os.path.basename(name).lower()
+    for module in modules:
+        if os.path.basename(module.filename).lower() == basename:
+            return module
     return None
 
 
@@ -383,11 +393,12 @@ def process(root_dir, dot_file, exclude, highlight, highlight_all, keep_deps):
 
 
 def main():
-    global debug_output
+    global debug_output, allow_loose_module_match
 
     p = ArgumentParser()
     p.add_argument("--input", "-i", help="The root directory to analyze.")
     p.add_argument("--output", "-o", help="The file to write to.")
+    p.add_argument("--loose", "-l", action="store_true", help="Allow loose matching of modules (may be required with path-aliases!)")
     p.add_argument("--keep-declared-deps", "-k", action="store_true", help="Don't remove redundant, transisitive dependencies in post-processing.")
     p.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
     p.add_argument("--exclude", "-e", help="Filter modules matching this expression from the graph")
@@ -397,6 +408,7 @@ def main():
     args = p.parse_args()
 
     debug_output = args.verbose
+    allow_loose_module_match = args.loose
 
     process(args.input, args.output, args.exclude, args.highlight, args.highlight_all, args.keep_declared_deps)
 
