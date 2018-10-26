@@ -307,6 +307,9 @@ def render_dot_file(projects, highlight_all=False):
             styling = " fillcolor=\"#f22430\" style=filled color=\"#000000\" fontcolor=\"#000000\""
         elif project.has_missing_modules:
             styling = " fillcolor=\"#c2c230\" style=filled color=\"#000000\" fontcolor=\"#000000\""
+        elif project.has_circular_dependencies:
+            styling = " fillcolor=\"#ff0000\" style=filled color=\"#000000\" fontcolor=\"#cccc00\""
+
 
         lines.append("    {0} [ label=\"{1}\" {2} ]".format(id, project.name, styling))
 
@@ -325,6 +328,8 @@ def render_dot_file(projects, highlight_all=False):
                   styling = " [color=\"#30c2c2\"]"
               elif proj2.is_missing_module or (project.has_missing_modules and proj2.has_missing_modules):
                   styling = " [color=\"#f22430\"]"
+              elif project.has_circular_dependencies and proj2.has_circular_dependencies:
+                  styling = " [color=\"#ff0000\"]"
               lines.append("    {0} -> {1}{2}".format(proj1_id, proj2_id, styling))
 
     lines.append("")
