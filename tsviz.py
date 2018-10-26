@@ -155,17 +155,17 @@ class Module(object):
         self.dependant_modules = project_deps
 
     def get_nested_dependencies(self):
-        # clone to new list, don't modify the existing list!
-        # that means -adding- dependencies when we want to remove them!
-        total_deps = self.dependant_modules[:]
-
-        for dep in self.dependant_modules:
-            dep_deps = dep.get_nested_dependencies()
-            for dep_dep in dep_deps:
-                if dep_dep not in total_deps:
-                    total_deps.append(dep_dep)
-
+        total_deps = []
+        self.add_nested_dependencies_to(total_deps)
         return total_deps
+
+
+    def add_nested_dependencies_to(self, all_deps):
+        for dep in self.dependant_modules:
+            if dep not in all_deps:
+                all_deps.append(dep)
+                dep.add_nested_dependencies_to(all_deps)
+
 
     def has_highlighted_dependencies(self):
         allDeps = self.get_nested_dependencies()
