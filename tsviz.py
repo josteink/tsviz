@@ -202,9 +202,25 @@ def get_module_by_name(name, modules):
 
 
 def get_lines_from_file(file):
-    with open(file, 'r') as f:
+    with open(file, 'r', encoding="utf-8") as f:
         contents = f.read()
+
+        # detect byte order marker. messes up first line in file.
+        # this first line is often an import!
+
+        bytes = contents.encode('utf-8')
+        #print(bytes[0:3])
+        if bytes[0:2] == b'\xef\xff':
+            print("BOM detected!")
+            contents = contents[2:]
+
+        if bytes[0:2] == b'\xef\xbb':
+            #print("BOM (3-byte) detected!")
+            contents = contents[1:]
+
         lines = contents.split("\n")
+        # print(lines[0])
+
         return lines
 
 
