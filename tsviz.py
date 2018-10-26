@@ -241,19 +241,11 @@ def get_tsfiles_in_dir(root_dir):
     return results
 
 
-def analyze_modules(tsfiles):
+def get_modules(tsfiles):
 
     modules = []
     for tsfile in tsfiles:
         modules.append(Module(tsfile))
-
-    # pull in dependencies declared in TS-files.
-    # requires real files, so cannot be used in test!
-    for module in modules:
-        module.apply_declared_module_dependencies()
-
-    # common processing once modules are prepared
-    process_modules(modules)
     return modules
 
 
@@ -359,16 +351,23 @@ def render_dot_file(projects, highlight_all=False):
 def process(root_dir, dot_file, exclude, highlight, highlight_all, keep_deps):
     set_working_basedir(root_dir)
     module_files = get_tsfiles_in_dir(root_dir)
-    modules = analyze_modules(module_files)
-
-    if not keep_deps:
-        debug("Removing redundant dependencies...")
-        remove_transitive_dependencies(modules)
+    modules = get_modules(module_files)
 
     if exclude:
         debug("Excluding projects...")
         excluder = re.compile(str.lower(exclude))
         modules = filter_modules(excluder, modules)
+
+    # pull in dependencies declared in TS-files.
+    # requires real files, so cannot be used in test!
+    for module in modules:
+        module.apply_declared_module_dependencies()
+
+    process_modules(modules)
+
+    if not keep_deps:
+        debug("Removing redundant dependencies...")
+        remove_transitive_dependencies(modules)
 
     if highlight:
         debug("Highlighting projects...")
