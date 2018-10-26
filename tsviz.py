@@ -185,6 +185,7 @@ class Module(object):
         for dep in self.declared_dependant_modules:
             for subdep in dep.declared_dependant_modules:
                 if subdep == self:
+                    print("WARNING: Circular dependency detected! Module {0} and {1} depends on each other!".format(self.name, dep.name))
                     self.has_circular_dependencies = True
                     self.circular_dependencies.append(dep)
 
