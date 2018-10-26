@@ -27,16 +27,16 @@ class Tests(unittest.TestCase):
 
     def test_module_id(self):
         module = tsviz.Module("SuperOffice.Test.Name.ts")
-        self.assertEqual("SuperOffice_Test_Name", module.get_friendly_id())
+        self.assertEqual("SuperOffice_Test_Name_ts", module.get_friendly_id())
 
         module = tsviz.Module("SubDir/SuperOffice.Test.Name.ts")
-        self.assertEqual("SubDir_SuperOffice_Test_Name", module.get_friendly_id())
+        self.assertEqual("SubDir_SuperOffice_Test_Name_ts", module.get_friendly_id())
 
     def test_graphviz_output(self):
         proj1 = tsviz.Module("Module.SO.Main.ts")
         proj2 = tsviz.Module("Module.SO.Installer.ts")
 
-        proj1.add_dependency(proj2.id);
+        proj1.add_dependency(proj2.name);
 
         txt = tsviz.render_dot_file([proj1, proj2])
 
@@ -115,19 +115,19 @@ class Tests(unittest.TestCase):
         a = tsviz.Module("A.ts")
         b = tsviz.Module("B.ts")
 
-        a.add_dependency("B")
+        a.add_dependency(b.filename)
         a.add_dependency("C")
         b.add_dependency("C")
 
         modules = [a, b]
-        a.resolve_modules_from_ids(modules)
-        b.resolve_modules_from_ids(modules)
+        a.resolve_modules_from_names(modules)
+        b.resolve_modules_from_names(modules)
 
         self.assertEqual(True, a.has_missing_modules)
         self.assertEqual(True, b.has_missing_modules)
 
-        self.assertEqual(["C"], a.missing_module_ids)
-        self.assertEqual(["C"], b.missing_module_ids)
+        self.assertEqual(["C.ts"], a.missing_module_names)
+        self.assertEqual(["C.ts"], b.missing_module_names)
 
         # TODO: test with eliminated transisitive deps.
 

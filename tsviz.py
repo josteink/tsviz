@@ -41,12 +41,11 @@ def set_working_basedir(root_dir):
 class Module(object):
     def __init__(self, filename):
         self.name = self.get_name_from_filename(filename)
-        self.filename = filename
-        self.id = self.get_full_module_path().upper()
-        self.dependant_ids = []
+        self.filename = os.path.abspath(filename)
+        self.dependant_module_names = []
         self.dependant_modules = []
         self.declared_dependant_modules = []
-        self.missing_module_ids = []
+        self.missing_module_names = []
         self.has_missing_modules = False
         self.is_missing_module = False
         self.highlight = False
@@ -57,18 +56,21 @@ class Module(object):
         elif solution_path == ".":
             return filename
         else:
-            return filename[len(solution_path)::]
+            return filename[len(solution_path)+1::]
 
     def filter_id(self, id):
         return id.replace("-", "")
 
     def get_friendly_id(self):
-        return self.name.replace(".ts", "").replace(".", "_").replace("-", "_").replace("/", "_")
+        return self.name.replace(".", "_").replace("-", "_").replace("/", "_")
 
-    def add_dependency(self, id):
-        id = str.upper(id)
-        if id not in self.dependant_ids:
-            self.dependant_ids.append(id)
+    def add_dependency(self, module_name):
+        if not module_name.endswith(".ts"):
+            module_name += ".ts"
+        filename = module_name
+        if filename not in self.dependant_module_names:
+            # print("{0}: Adding to dependency: {1}".format(self.name, filename))
+            self.dependant_module_names.append(filename)
 
     def get_full_module_path(self):
         return os.path.abspath(self.filename)
@@ -80,45 +82,41 @@ class Module(object):
                 imports.append(line)
         return imports
 
-    def get_module_ids(self, imports):
+    def get_module_imports(self, imports):
         result = []
         for item in imports:
             match = module_import_declaration.match(item)
             if match:
-                module = match.groups()[0].upper()
+                module = match.groups()[0]
                 full_module_path = os.path.abspath(os.path.join(os.path.dirname(self.filename), module))
                 result.append(full_module_path)
         return result
 
-    def get_declared_module_dependency_ids(self):
-        full_path = self.get_full_module_path()
-        if not os.path.isfile(full_path):
-            print("--Module {0}-- Couldn't open file '{1}'".format(self.name, full_path))
-            return []
-
-        lines = get_lines_from_file(full_path)
-        imports = self.get_module_references(lines)
-        ids = self.get_module_ids(imports)
-        return ids
+    def get_declared_module_dependencies(self):
+        lines = get_lines_from_file(self.filename)
+        import_lines = self.get_module_references(lines)
+        imports = self.get_module_imports(import_lines)
+        return imports
 
     def apply_declared_module_dependencies(self):
-        ids = self.get_declared_module_dependency_ids()
-        for id in ids:
-            self.add_dependency(id)
+        imports = self.get_declared_module_dependencies()
+        for item in imports:
+            self.add_dependency(item)
 
-    def resolve_modules_from_ids(self, modules):
-        for id in self.dependant_ids:
-            module = get_module_by_id(id, modules)
+    def resolve_modules_from_names(self, modules):
+        for name in self.dependant_module_names:
+            module = get_module_by_name(name, modules)
             if module is None:
+                print("ERROR! Failed to resolve dependency {0} in module {1}!".format(name, self.name))
                 # track missing deps consistently
-                missing_module_id = "Missing_" + id.replace("-", "")
+                missing_module_id = name.replace("-", "")
                 module = Module(missing_module_id)
                 module.is_missing_module = True
                 modules.append(module)
 
             if module.is_missing_module:
                 self.has_missing_modules = True
-                self.missing_module_ids.append(id)
+                self.missing_module_names.append(module.name)
 
             self.dependant_modules.append(module)
 
@@ -182,10 +180,14 @@ class Module(object):
 
 
 
-def get_module_by_id(id, projects):
-    for project in projects:
-        if project.id == id:
-            return project
+def get_module_by_name(name, modules):
+    for module in modules:
+        if module.filename == name:
+            return module
+    #print("ERROR lookup module {0}".format(name))
+    #print("List of all modules:")
+    #for item in modules:
+    #    print("- {0}".format(item.filename))
     return None
 
 
@@ -214,11 +216,8 @@ def get_tsfiles_in_dir(root_dir):
 def analyze_modules(tsfiles):
 
     modules = []
-    current_module = None
-
     for tsfile in tsfiles:
-        current_module = Module(tsfile)
-        modules.append(current_module)
+        modules.append(Module(tsfile))
 
     # pull in dependencies declared in project-files
     for module in modules:
@@ -226,7 +225,7 @@ def analyze_modules(tsfiles):
 
     # all projects & dependencies should now be known. lets analyze them
     for module in modules:
-        module.resolve_modules_from_ids(modules)
+        module.resolve_modules_from_names(modules)
 
     # format results in a alphabetical order
     sort_modules(modules)
@@ -264,7 +263,7 @@ def render_dot_file(projects, highlight_all=False):
     lines = []
 
     lines.append("digraph {")
-    lines.append("    rankdir=\"TB\"")
+    lines.append("    rankdir=\"LR\"")
     lines.append("")
     lines.append("    # apply theme")
     lines.append("    bgcolor=\"#222222\"")
@@ -273,7 +272,7 @@ def render_dot_file(projects, highlight_all=False):
     lines.append("    node [ color=\"#ffffff\" fontcolor=\"#ffffff\" ]")
     lines.append("    edge [ color=\"#ffffff\" ]")
     lines.append("")
-    lines.append("    # project declarations")
+    lines.append("    # module declarations")
 
     # define projects
     # create nodes like this
