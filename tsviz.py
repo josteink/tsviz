@@ -58,9 +58,6 @@ class Module(object):
         else:
             return filename[len(solution_path)+1::]
 
-    def filter_id(self, id):
-        return id.replace("-", "")
-
     def get_friendly_id(self):
         return self.name.replace(".", "_").replace("-", "_").replace("/", "_")
 
@@ -71,9 +68,6 @@ class Module(object):
         if filename not in self.dependant_module_names:
             # print("{0}: Adding to dependency: {1}".format(self.name, filename))
             self.dependant_module_names.append(filename)
-
-    def get_full_module_path(self):
-        return os.path.abspath(self.filename)
 
     def get_module_references(self, lines):
         imports = []
