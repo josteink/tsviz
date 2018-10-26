@@ -43,8 +43,15 @@ class Module(object):
         self.name = self.get_name_from_filename(filename)
         self.filename = os.path.abspath(filename)
         self.dependant_module_names = []
-        self.dependant_modules = []
+
+        # dependant modules, as declared in file.
+        # not subject to transitive dependency-elimination.
         self.declared_dependant_modules = []
+
+        # dependant modules as visualized in the graph, based on self.declared_dependant_modules.
+        # subject to transitive dependency-elimination.
+        self.dependant_modules = []
+
         self.missing_module_names = []
         self.has_missing_modules = False
         self.is_missing_module = False
