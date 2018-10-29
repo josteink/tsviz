@@ -57,6 +57,7 @@ class Module(object):
         self.has_missing_modules = False
         self.is_missing_module = False
         self.highlight = False
+        self.highlighted_dependents = False
         self.has_circular_dependencies = False
         self.circular_dependencies = []
 
@@ -298,8 +299,14 @@ def highlight_modules(rx, projects):
             debug("Highlighting project {0}".format(project.name))
             project.highlight = True
 
+    for project in projects:
+        if project.highlight:
+            deps = project.get_nested_dependencies()
+            for dep in deps:
+                dep.highlighted_dependents = True
 
-def render_dot_file(projects, highlight_all=False):
+
+def render_dot_file(projects, highlight_all=False, highlight_children=False):
     lines = []
 
     lines.append("digraph {")
@@ -321,12 +328,12 @@ def render_dot_file(projects, highlight_all=False):
         id = project.get_friendly_id()
 
         styling = ""
-        if project.highlight:
+        if project.highlight or project.highlighted_dependents:
             styling = " fillcolor=\"#30c2c2\" style=filled color=\"#000000\" fontcolor=\"#000000\""
         elif project.is_missing_module:
             styling = " fillcolor=\"#f22430\" style=filled color=\"#000000\" fontcolor=\"#000000\""
         elif project.has_missing_modules:
-            styling = " fillcolor=\"#c2c230\" style=filled color=\"#000000\" fontcolor=\"#000000\""
+            styling = " fillcolor=\"#616118\" style=filled color=\"#000000\" fontcolor=\"#000000\""
         elif project.has_circular_dependencies:
             styling = " fillcolor=\"#ff0000\" style=filled color=\"#000000\" fontcolor=\"#cccc00\""
 
@@ -344,7 +351,7 @@ def render_dot_file(projects, highlight_all=False):
             else:
               proj2_id = proj2.get_friendly_id()
               styling = ""
-              if proj2.highlight or proj2.has_declared_highlighted_dependencies() or (highlight_all and proj2.has_highlighted_dependencies()):
+              if proj2.highlight or proj2.highlighted_dependents or proj2.has_declared_highlighted_dependencies() or (highlight_all and proj2.has_highlighted_dependencies()):
                   styling = " [color=\"#30c2c2\"]"
               elif proj2.is_missing_module or (project.has_missing_modules and proj2.has_missing_modules):
                   styling = " [color=\"#f22430\"]"
@@ -358,7 +365,7 @@ def render_dot_file(projects, highlight_all=False):
     return "\n".join(lines)
 
 
-def process(root_dir, dot_file, exclude, highlight, highlight_all, keep_deps):
+def process(root_dir, dot_file, exclude, highlight, highlight_all, highlight_children, keep_deps):
     set_working_basedir(root_dir)
     module_files = get_tsfiles_in_dir(root_dir)
     modules = get_modules(module_files)
@@ -384,7 +391,7 @@ def process(root_dir, dot_file, exclude, highlight, highlight_all, keep_deps):
         highlighter = re.compile(str.lower(highlight))
         highlight_modules(highlighter, modules)
 
-    txt = render_dot_file(modules, highlight_all)
+    txt = render_dot_file(modules, highlight_all, highlight_children)
 
     with open(dot_file, 'w') as f:
         f.write(txt)
@@ -404,13 +411,14 @@ def main():
     p.add_argument("--exclude", "-e", help="Filter modules matching this expression from the graph")
     p.add_argument("--highlight", help="Highlights modules matching this expression in the graph")
     p.add_argument("--highlight-all", action="store_true", help="Highlight all paths leading to a highlighted project")
+    p.add_argument("--highlight-children", action="store_true", help="Highlight all child-dependencies of highlighted project")
 
     args = p.parse_args()
 
     debug_output = args.verbose
     allow_loose_module_match = args.loose
 
-    process(args.input, args.output, args.exclude, args.highlight, args.highlight_all, args.keep_declared_deps)
+    process(args.input, args.output, args.exclude, args.highlight, args.highlight_all, args.highlight_children, args.keep_declared_deps)
 
 
 # don't run from unit-tests

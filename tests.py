@@ -1,5 +1,6 @@
 import unittest
 import tsviz
+import re
 
 
 class Tests(unittest.TestCase):
@@ -177,6 +178,28 @@ class Tests(unittest.TestCase):
         self.assertEqual([d], b.circular_dependencies)
         self.assertEqual([b], c.circular_dependencies)
         self.assertEqual([c], d.circular_dependencies)
+
+    def test_highlighting_top_level_node_flags_dependants(self):
+        a = tsviz.Module("A.ts")
+        b = tsviz.Module("B.ts")
+        c = tsviz.Module("C.ts")
+        d = tsviz.Module("D.ts")
+
+        a.add_dependency(b.filename)
+        b.add_dependency(c.filename)
+        c.add_dependency(d.filename)
+
+        tsviz.process_modules([a, b, c, d])
+
+        # act
+        highlighter = re.compile("^a")
+        tsviz.highlight_modules(highlighter, [a, b, c, d])
+
+        # assert
+        self.assertEqual(False, a.highlighted_dependents)
+        self.assertEqual(True, b.highlighted_dependents)
+        self.assertEqual(True, c.highlighted_dependents)
+        self.assertEqual(True, d.highlighted_dependents)
 
 
 if __name__ == "__main__":
