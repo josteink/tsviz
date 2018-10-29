@@ -351,7 +351,7 @@ def render_dot_file(projects, highlight_all=False, highlight_children=False):
             else:
               proj2_id = proj2.get_friendly_id()
               styling = ""
-              if proj2.highlight or proj2.highlighted_dependents or proj2.has_declared_highlighted_dependencies() or (highlight_all and proj2.has_highlighted_dependencies()):
+              if proj2.highlight or ((project.highlight or project.highlighted_dependents) and proj2.highlighted_dependents) or proj2.has_declared_highlighted_dependencies() or (highlight_all and proj2.has_highlighted_dependencies()):
                   styling = " [color=\"#30c2c2\"]"
               elif proj2.is_missing_module or (project.has_missing_modules and proj2.has_missing_modules):
                   styling = " [color=\"#f22430\"]"
