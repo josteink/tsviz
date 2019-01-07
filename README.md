@@ -22,7 +22,7 @@ slnviz in a nutshell:
 
 ### python
 
-slnviz is written in Python and targets Python 3. No additional modules needs to
+tsviz is written in Python and targets Python 3. No additional modules needs to
 be installed.
 
 It seems to work with Python 2.7 as well, but that's not a supported target.
