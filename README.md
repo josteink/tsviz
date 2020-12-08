@@ -1,7 +1,7 @@
 
 # tsviz
 
-![Build status](https://api.travis-ci.org/josteink/tsviz.svg?branch=master)
+![CI](https://github.com/josteink/tsviz/workflows/CI/badge.svg)
 
 tsviz is a command-line utility to help visualize TypeScript class-dependencies and graphs.
 
