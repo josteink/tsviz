@@ -12,7 +12,7 @@ slnviz in a nutshell:
 - command-line driven.
 - exports a [GraphViz](http://graphviz.org/) DOT-file from a TypeScript project directory.
 - detects circular dependencies and flags them in the graph.
-- highlights projects whose dependencies are not found in the solution.
+- highlights places where dependencies are not found in the solution.
 - ability to filter redundant transistive dependencies.
 - ability to exclude certain kinds of projects (test, shared, etc) from
   graph.
