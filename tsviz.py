@@ -16,6 +16,7 @@ solution_path = "."
 allow_loose_module_match = False
 
 module_import_declaration = re.compile("import .* from \"(.*)\";.*")
+module_require_declaration = re.compile(".*require\(\"(.*)\"\).*")
 
 
 def debug(txt):
@@ -85,12 +86,19 @@ class Module(object):
         for line in lines:
             if line.startswith("import "):
                 imports.append(line)
+            if line.find("require("):
+                imports.append(line)
         return imports
 
     def get_module_imports(self, imports):
         result = []
         for item in imports:
             match = module_import_declaration.match(item)
+            if match:
+                module = match.groups()[0]
+                full_module_path = os.path.abspath(os.path.join(os.path.dirname(self.filename), module))
+                result.append(full_module_path)
+            match = module_require_declaration.match(item)
             if match:
                 module = match.groups()[0]
                 full_module_path = os.path.abspath(os.path.join(os.path.dirname(self.filename), module))
