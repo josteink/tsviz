@@ -15,8 +15,8 @@ debug_output = False
 solution_path = "."
 allow_loose_module_match = False
 
-module_import_declaration = re.compile("import .* from \"(.*)\";.*")
-module_require_declaration = re.compile(".*require\(\"(.*)\"\).*")
+module_import_declaration = re.compile("import .* from [\"'](.*)[\"'];.*")
+module_require_declaration = re.compile(".*require\([\"'](.*)[\"']\).*")
 
 extension = ".ts"
 
