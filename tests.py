@@ -49,10 +49,10 @@ class Tests(unittest.TestCase):
         self.assertEqual(True, "label=\"Module.SO.Main.ts\"" in txt)
 
     def test_eliminate_dependencies(self):
-        a = tsviz.Module("A.ts")
-        b = tsviz.Module("B.ts")
-        c = tsviz.Module("C.ts")
-        d = tsviz.Module("D.ts")
+        a = tsviz.Module("./A.ts")
+        b = tsviz.Module("./B.ts")
+        c = tsviz.Module("./C.ts")
+        d = tsviz.Module("./D.ts")
 
         a.dependant_modules = [b, c, d]
         b.dependant_modules = [c, d]
@@ -67,10 +67,10 @@ class Tests(unittest.TestCase):
         self.assertEqual([d], c.dependant_modules)
 
     def test_dependency_chains(self):
-        a = tsviz.Module("A.ts")
-        b = tsviz.Module("B.ts")
-        c = tsviz.Module("C.ts")
-        d = tsviz.Module("D.ts")
+        a = tsviz.Module("./A.ts")
+        b = tsviz.Module("./B.ts")
+        c = tsviz.Module("./C.ts")
+        d = tsviz.Module("./D.ts")
 
         a.dependant_modules = [b]
         b.dependant_modules = [c]
@@ -80,10 +80,10 @@ class Tests(unittest.TestCase):
         self.assertEqual([b, c, d], all_deps)
 
     def test_module_highlighting(self):
-        a = tsviz.Module("A.ts")
-        b1 = tsviz.Module("B1.ts")
-        b2 = tsviz.Module("B2.ts")
-        c = tsviz.Module("C.ts")
+        a = tsviz.Module("./A.ts")
+        b1 = tsviz.Module("./B1.ts")
+        b2 = tsviz.Module("./B2.ts")
+        c = tsviz.Module("./C.ts")
 
         a.dependant_modules = [b1, b2]
         b1.dependant_modules = [c]
@@ -96,9 +96,9 @@ class Tests(unittest.TestCase):
         self.assertEqual(False, c.has_highlighted_dependencies())
 
     def test_declared_dependencies_generates_highlight_even_though_dependency_is_eliminated_as_transitive(self):
-        a = tsviz.Module("A.ts")
-        b = tsviz.Module("B.ts")
-        c = tsviz.Module("C.ts")
+        a = tsviz.Module("./A.ts")
+        b = tsviz.Module("./B.ts")
+        c = tsviz.Module("./C.ts")
 
         a.dependant_modules = [b]
         b.dependant_modules = [c]
@@ -113,12 +113,12 @@ class Tests(unittest.TestCase):
         self.assertEqual(True, hasDep)
 
     def test_missing_shared_transitive_dependencies(self):
-        a = tsviz.Module("A.ts")
-        b = tsviz.Module("B.ts")
+        a = tsviz.Module("./A.ts")
+        b = tsviz.Module("./B.ts")
 
         a.add_dependency(b.filename)
-        a.add_dependency("C")
-        b.add_dependency("C")
+        a.add_dependency("./C")
+        b.add_dependency("./C")
 
         modules = [a, b]
         a.resolve_modules_from_names(modules)
@@ -127,16 +127,16 @@ class Tests(unittest.TestCase):
         self.assertEqual(True, a.has_missing_modules)
         self.assertEqual(True, b.has_missing_modules)
 
-        self.assertEqual(["C.ts"], a.missing_module_names)
-        self.assertEqual(["C.ts"], b.missing_module_names)
+        self.assertEqual(["./C.ts"], a.missing_module_names)
+        self.assertEqual(["./C.ts"], b.missing_module_names)
 
         # TODO: test with eliminated transisitive deps.
 
     def test_circular_dependencies_are_flagged(self):
-        a = tsviz.Module("A.ts")
-        b = tsviz.Module("B.ts")
-        c = tsviz.Module("C.ts")
-        d = tsviz.Module("D.ts")
+        a = tsviz.Module("./A.ts")
+        b = tsviz.Module("./B.ts")
+        c = tsviz.Module("./C.ts")
+        d = tsviz.Module("./D.ts")
 
         a.add_dependency(b.filename)
         b.add_dependency(c.filename)
@@ -156,10 +156,10 @@ class Tests(unittest.TestCase):
         self.assertEqual([b], c.circular_dependencies)
 
     def test_deep_circular_dependencies_are_flagged(self):
-        a = tsviz.Module("A.ts")
-        b = tsviz.Module("B.ts")
-        c = tsviz.Module("C.ts")
-        d = tsviz.Module("D.ts")
+        a = tsviz.Module("./A.ts")
+        b = tsviz.Module("./B.ts")
+        c = tsviz.Module("./C.ts")
+        d = tsviz.Module("./D.ts")
 
         a.add_dependency(b.filename)
         b.add_dependency(c.filename)
@@ -180,10 +180,10 @@ class Tests(unittest.TestCase):
         self.assertEqual([c], d.circular_dependencies)
 
     def test_highlighting_top_level_node_flags_dependants(self):
-        a = tsviz.Module("A.ts")
-        b = tsviz.Module("B.ts")
-        c = tsviz.Module("C.ts")
-        d = tsviz.Module("D.ts")
+        a = tsviz.Module("./A.ts")
+        b = tsviz.Module("./B.ts")
+        c = tsviz.Module("./C.ts")
+        d = tsviz.Module("./D.ts")
 
         a.add_dependency(b.filename)
         b.add_dependency(c.filename)
@@ -192,7 +192,7 @@ class Tests(unittest.TestCase):
         tsviz.process_modules([a, b, c, d])
 
         # act
-        highlighter = re.compile("^a")
+        highlighter = re.compile("^./a")
         tsviz.highlight_modules(highlighter, [a, b, c, d])
 
         # assert
