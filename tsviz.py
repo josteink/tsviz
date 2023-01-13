@@ -64,7 +64,9 @@ class Module(object):
         self.circular_dependencies = []
 
     def get_name_from_filename(self, filename):
-        if len(solution_path) == 0:
+        if filename.find("/") == -1:
+            return filename
+        elif len(solution_path) == 0:
             return filename
         elif solution_path == ".":
             return filename
@@ -98,14 +100,20 @@ class Module(object):
             match = module_import_declaration.match(item)
             if match:
                 module = match.groups()[0]
-                full_module_path = os.path.abspath(os.path.join(os.path.dirname(self.filename), module))
+                full_module_path = self.get_module_path(module)
                 result.append(full_module_path)
             match = module_require_declaration.match(item)
             if match:
                 module = match.groups()[0]
-                full_module_path = os.path.abspath(os.path.join(os.path.dirname(self.filename), module))
+                full_module_path = self.get_module_path(module)
                 result.append(full_module_path)
         return result
+
+    def get_module_path(self, module):
+        if module.find("/") != -1:
+            return os.path.abspath(os.path.join(os.path.dirname(self.filename), module))
+        else:
+            return module
 
     def get_declared_module_dependencies(self):
         lines = get_lines_from_file(self.filename)
