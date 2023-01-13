@@ -18,6 +18,7 @@ allow_loose_module_match = False
 module_import_declaration = re.compile("import .* from \"(.*)\";.*")
 module_require_declaration = re.compile(".*require\(\"(.*)\"\).*")
 
+extension = ".ts"
 
 def debug(txt):
     global debug_output
@@ -74,8 +75,9 @@ class Module(object):
         return self.name.replace(".", "_").replace("-", "_").replace("/", "_")
 
     def add_dependency(self, module_name):
-        if not module_name.endswith(".ts"):
-            module_name += ".ts"
+        global extension
+        if not module_name.endswith(extension):
+            module_name += extension
         filename = module_name
         if filename not in self.dependant_module_names:
             # print("{0}: Adding to dependency: {1}".format(self.name, filename))
@@ -249,14 +251,23 @@ def sort_modules(modules):
 
 
 def get_tsfiles_in_dir(root_dir):
+    global extension
     from fnmatch import fnmatch
 
     results = []
 
     for path, subdirs, files in os.walk(root_dir):
         for name in files:
-            if fnmatch(name, "*.ts"):
+            if fnmatch(name, "*" + extension):
                 results.append(os.path.join(path, name))
+
+    # fallback to JS if no typescript
+    if results == []:
+        extension = ".js"
+        for path, subdirs, files in os.walk(root_dir):
+            for name in files:
+                if fnmatch(name, "*" + extension):
+                    results.append(os.path.join(path, name))
     return results
 
 
