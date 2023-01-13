@@ -78,7 +78,10 @@ class Module(object):
 
     def add_dependency(self, module_name):
         global extension
-        if not module_name.endswith(extension):
+        if module_name.find("/") == -1 or module_name.endswith(".json"):
+            # node module. no need to adjust
+            debug("Info: resolved npm-module or JSON data-file {0}.".format(module_name))
+        elif not module_name.endswith(extension):
             module_name += extension
         filename = module_name
         if filename not in self.dependant_module_names:
